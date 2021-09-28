@@ -104,12 +104,12 @@ def get_customers_2(text):
 
 @app.route('/genres_durations')
 def get_genre_durations():
-    query = (f"SELECT g.Name, t.Milliseconds / 1000 AS Duration "
-             f"FROM genres g "
-             f"INNER JOIN tracks t "
-             f"ON g.GenreId = t.GenreId "
-             f"GROUP BY g.Name "
-             f"ORDER BY Duration DESC ")
+    query = f'''SELECT g.Name, t.Milliseconds / 1000 AS Duration 
+             FROM genres g 
+             INNER JOIN tracks t 
+             ON g.GenreId = t.GenreId 
+             GROUP BY g.Name 
+             ORDER BY Duration DESC'''
     records = db.execute_query(query)
     result = '<br>'.join(f'Genre: "{rec[0]}", Duration: {rec[1]} minutes' for rec in records)
     return result
@@ -127,13 +127,13 @@ def get_genre_durations():
     location='query',
 )
 def get_greatest_hits(count):
-    query=f"SELECT t.Name, COUNT(ii.Quantity) as BuyingRate, COUNT(ii.TrackId) * ii.UnitPrice as TotalPrice " \
-          f"FROM invoice_items ii " \
-          f"INNER JOIN tracks t " \
-          f"ON ii.TrackId = t.TrackId " \
-          f"GROUP BY t.TrackId " \
-          f"ORDER BY BuyingRate DESC " \
-          f"LIMIT ?"
+    query = f'''SELECT t.Name, COUNT(ii.Quantity) as BuyingRate, COUNT(ii.TrackId) * ii.UnitPrice as TotalPrice 
+          FROM invoice_items ii
+          INNER JOIN tracks t 
+          ON ii.TrackId = t.TrackId 
+          GROUP BY t.TrackId 
+          ORDER BY BuyingRate DESC 
+          LIMIT ?'''
     records = db.execute_query(query, args=(count, ))
     result = '<br>'.join(f'Track name: {rec[0]}, Sold: {rec[1]}, Total amount: {rec[2]}' for rec in records)
     return result
