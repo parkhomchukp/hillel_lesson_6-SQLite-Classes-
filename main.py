@@ -102,4 +102,17 @@ def get_customers_2(text):
     return result
 
 
+@app.route('/genres_durations')
+def get_genre_durations():
+    query = (f"SELECT g.Name, t.Milliseconds / 1000 AS Duration "
+             f"FROM genres g "
+             f"INNER JOIN tracks t "
+             f"ON g.GenreId = t.GenreId "
+             f"GROUP BY g.Name "
+             f"ORDER BY Duration DESC ")
+    records = db.execute_query(query)
+    result = '<br>'.join(f'Genre: "{rec[0]}", Duration: {rec[1]} minutes' for rec in records)
+    return result
+
+
 app.run(debug=True)
