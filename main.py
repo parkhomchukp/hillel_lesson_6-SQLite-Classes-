@@ -115,4 +115,28 @@ def get_genre_durations():
     return result
 
 
+@app.route('/greatest_hits')
+@use_kwargs(
+    {
+        'count': fields.Int(
+            required=False,
+            missing=99999999,
+            validate=validate.Range(min=1)
+        )
+    },
+    location='query',
+)
+def get_greatest_hits(count):
+    query=f"SELECT t.Name, COUNT(ii.Quantity) as BuyingRate, COUNT(ii.TrackId) * ii.UnitPrice as TotalPrice " \
+          f"FROM invoice_items ii " \
+          f"INNER JOIN tracks t " \
+          f"ON ii.TrackId = t.TrackId " \
+          f"GROUP BY t.TrackId " \
+          f"ORDER BY BuyingRate DESC " \
+          f"LIMIT ?"
+    records = db.execute_query(query, args=(count, ))
+    result = '<br>'.join(f'Track name: {rec[0]}, Sold: {rec[1]}, Total amount: {rec[2]}' for rec in records)
+    return result
+
+
 app.run(debug=True)
