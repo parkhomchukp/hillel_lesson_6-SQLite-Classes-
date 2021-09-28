@@ -102,4 +102,45 @@ def get_customers_2(text):
     return result
 
 
+@app.route('/genres_durations')
+def get_genre_durations():
+    query = f'''SELECT g.Name, t.Milliseconds / 1000 AS Duration 
+             FROM genres g 
+             INNER JOIN tracks t 
+             ON g.GenreId = t.GenreId 
+             GROUP BY g.Name 
+             ORDER BY Duration DESC'''
+    records = db.execute_query(query)
+    result = '<br>'.join(f'Genre: "{rec[0]}", Duration: {rec[1]} minutes' for rec in records)
+    return result
+
+
+@app.route('/greatest_hits')
+@use_kwargs(
+    {
+        'count': fields.Int(
+            required=False,
+            missing=None,
+            validate=validate.Range(min=1)
+        )
+    },
+    location='query',
+)
+def get_greatest_hits(count):
+    query = f'''SELECT t.Name, COUNT(ii.Quantity) as BuyingRate, COUNT(ii.TrackId) * ii.UnitPrice as TotalPrice 
+          FROM invoice_items ii
+          INNER JOIN tracks t 
+          ON ii.TrackId = t.TrackId 
+          GROUP BY t.TrackId 
+          ORDER BY BuyingRate DESC 
+          '''
+    if count:
+        query += 'LIMIT ?'
+        records = db.execute_query(query, args=(count, ))
+    else:
+        records = db.execute_query(query)
+    result = '<br>'.join(f'Track name: {rec[0]}, Sold: {rec[1]}, Total amount: {rec[2]}' for rec in records)
+    return result
+
+
 app.run(debug=True)
