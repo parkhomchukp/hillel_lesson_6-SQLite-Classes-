@@ -120,7 +120,7 @@ def get_genre_durations():
     {
         'count': fields.Int(
             required=False,
-            missing=99999999,
+            missing=None,
             validate=validate.Range(min=1)
         )
     },
@@ -133,8 +133,12 @@ def get_greatest_hits(count):
           ON ii.TrackId = t.TrackId 
           GROUP BY t.TrackId 
           ORDER BY BuyingRate DESC 
-          LIMIT ?'''
-    records = db.execute_query(query, args=(count, ))
+          '''
+    if count:
+        query += 'LIMIT ?'
+        records = db.execute_query(query, args=(count, ))
+    else:
+        records = db.execute_query(query)
     result = '<br>'.join(f'Track name: {rec[0]}, Sold: {rec[1]}, Total amount: {rec[2]}' for rec in records)
     return result
 
